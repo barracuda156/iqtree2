@@ -361,7 +361,7 @@ if (__ARM_NEON AND APPLE)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4 OR IQTREE_FLAGS MATCHES "m32")
-    error("32-bit compilation is not supported")
+    message("32-bit compilation is untested!")
 else()
     message("Target binary : 64-bit")
     if (CLANG_UNDER_VS)
