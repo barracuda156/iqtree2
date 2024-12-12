@@ -12,6 +12,10 @@
 
 #include "instrset.h"
 
+#if defined(__ARM_NEON) || defined(__POWERPC__) || defined(__powerpc__)
+#define NO_X86_ASM
+#endif
+
 #ifdef VCL_NAMESPACE
 namespace VCL_NAMESPACE {
 #endif
@@ -20,7 +24,7 @@ namespace VCL_NAMESPACE {
 // input:  eax = functionnumber, ecx = 0
 // output: eax = output[0], ebx = output[1], ecx = output[2], edx = output[3]
 static inline void cpuid (int output[4], int functionnumber) {	
-#if defined(__GNUC__) && !defined ( __ARM_NEON ) || defined(__clang__) && !defined ( __ARM_NEON )             // use inline assembly, Gnu/AT&T syntax
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(NO_X86_ASM) // use inline assembly, Gnu/AT&T syntax
 
    int a, b, c, d;
    __asm("cpuid" : "=a"(a),"=b"(b),"=c"(c),"=d"(d) : "a"(functionnumber),"c"(0) : );
@@ -33,7 +37,7 @@ static inline void cpuid (int output[4], int functionnumber) {
 
     __cpuidex(output, functionnumber, 0);                  // intrinsic function for CPUID
 
-#elif !defined ( __ARM_NEON )                                                      // unknown platform. try inline assembly with masm/intel syntax
+#elif !defined(NO_X86_ASM)                                 // unknown platform. try inline assembly with masm/intel syntax
 
     __asm {
         mov eax, functionnumber
@@ -55,13 +59,13 @@ static inline int64_t xgetbv (int ctr) {
 
     return _xgetbv(ctr);                                   // intrinsic function for XGETBV
 
-#elif defined(__GNUC__) && !defined ( __ARM_NEON )                                   // use inline assembly, Gnu/AT&T syntax
+#elif defined(__GNUC__) && !defined(NO_X86_ASM)            // use inline assembly, Gnu/AT&T syntax
 
    uint32_t a, d;
    __asm("xgetbv" : "=a"(a),"=d"(d) : "c"(ctr) : );
    return a | (uint64_t(d) << 32);
 
-#elif !defined ( __ARM_NEON ) // #elif defined (_WIN32)                           // other compiler. try inline assembly with masm/intel/MS syntax
+#elif !defined(NO_X86_ASM) // #elif defined (_WIN32)       // other compiler. try inline assembly with masm/intel/MS syntax
 
    uint32_t a, d;
     __asm {
