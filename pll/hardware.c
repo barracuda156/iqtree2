@@ -30,7 +30,7 @@ static __inline void cpuid(unsigned int op, int count,
 	*ebx = regs[1];
 	*ecx = regs[2];
 	*edx = regs[3];
-#elif !defined (__ARM_NEON)
+#elif !defined(__ARM_NEON) && !defined(__POWERPC__) && !defined(__powerpc__)
 	*eax = op;
   *ecx = count;
   asm volatile("cpuid"
@@ -43,7 +43,6 @@ static __inline void cpuid(unsigned int op, int count,
         : "memory");
 #endif
 }
-
 
 void show_hardware_info(pllHardwareInfo * hw)
 {
