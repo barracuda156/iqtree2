@@ -188,6 +188,15 @@ elseif (UNIX AND NOT APPLE)  # Unix and Linux
 	endif()
 endif()
 
+# Detect Power(PC) architecture
+set (POWERARCH 0)
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "ppc|power"
+  OR (APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "ppc"))
+	message("POWER/POWERPC CPU DETECTED!")
+    set (POWERARCH 1)
+    set (IQTREE_FLAGS "${IQTREE_FLAGS} novx nosse")
+endif()
+
 ##################################################################
 # Include the CMAPLE library
 ##################################################################
@@ -753,7 +762,9 @@ if (USE_LSD2)
     add_subdirectory(lsd2)
 endif()
 
+if (NOT IQTREE_FLAGS MATCHES "nosse")
 add_library(kernelsse tree/phylokernelsse.cpp)
+endif()
 
 if (NOT IQTREE_FLAGS MATCHES "novx")
 add_library(kernelavx tree/phylotreeavx.cpp)
@@ -817,8 +828,8 @@ if (NOT IQTREE_FLAGS MATCHES "avx" AND NOT IQTREE_FLAGS MATCHES "fma")
         if (USE_BOOSTER)
             set_target_properties(booster PROPERTIES COMPILE_FLAGS "${SSE_FLAGS}")
         endif()
+        set_target_properties(kernelsse pll PROPERTIES COMPILE_FLAGS "${SSE_FLAGS}")
     endif()
-    set_target_properties(kernelsse pll PROPERTIES COMPILE_FLAGS "${SSE_FLAGS}")
     if (NOT IQTREE_FLAGS MATCHES "novx")
         set_target_properties(kernelavx pllavx PROPERTIES COMPILE_FLAGS "${AVX_FLAGS}")
         set_target_properties(kernelfma PROPERTIES COMPILE_FLAGS "${FMA_FLAGS}")
